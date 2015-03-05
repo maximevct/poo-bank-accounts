@@ -18,11 +18,20 @@ public:
       _month(month),
       _year(year) {
     std::ostringstream ss;
-    ss << std::setfill('0')
-       << std::setw(2) << day
-       << std::setw(2) << month
-       << std::setw(4) << year;
+    ss << year << '-' << month << '-' << day;
     _dateAsString = ss.str();
+  }
+
+  Date(const std::string &dateAsString)
+    : _dateAsString(dateAsString) {
+    std::stringstream          lineStream(line);
+    std::string                year;
+    std::string                month;
+    std::string                day;
+
+    std::getline(lineStream, year,  '-');
+    std::getline(lineStream, month, '-');
+    std::getline(lineStream, day,   '-');
   }
 
   Date(const Date &date)
@@ -169,9 +178,9 @@ protected:
   std::list<Transaction *> _listTransactions;
 
 public:
-  Account(User *user) {
+  Account(User *user, Id *id = NULL) {
     _balance = 0;
-    _id = IdGenerator::getInstance()->generateId(user);
+    _id = (id == NULL) ? IdGenerator::getInstance()->generateId(user) : id;
   }
 
   virtual bool withdraw(const int amount, const Date &date) {
@@ -188,34 +197,34 @@ public:
 
 class AccountNormal : public Account {
 public:
-  AccountNormal(User *user) : Account(user) {}
+  AccountNormal(User *user, Id *id) : Account(user, id) {}
   virtual ~AccountNormal() {};
 };
 
 class AccountChild : public Account {
 public:
-  AccountChild(User *user) : Account(user) {}
+  AccountChild(User *user, Id *id) : Account(user, id) {}
   virtual ~AccountChild() {};
 };
 
 class AccountOld : public Account {
 public:
-  AccountOld(User *user) : Account(user) {}
+  AccountOld(User *user, Id *id) : Account(user, id) {}
   virtual ~AccountOld() {};
 };
 
 class AccountFactory {
 private:
-  enum AccountType { NORMAL, CHILD, OLD };
-  static std::vector<Account *(AccountFactory::*)(User *)> _listAccountTypes;
-  Account *createAccountNormal(User *user) {
-    return new AccountNormal(user);
+  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
+  static std::vector<Account *(AccountFactory::*)(User *, Id *)> _listAccountTypes;
+  Account *createAccountNormal(User *user, Id *id) {
+    return new AccountNormal(user, id);
   }
-  Account *createAccountChild(User *user) {
-    return new AccountChild(user);
+  Account *createAccountChild(User *user, Id *id) {
+    return new AccountChild(user, id);
   }
-  Account *createAccountOld(User *user) {
-    return new AccountOld(user);
+  Account *createAccountOld(User *user, Id *id) {
+    return new AccountOld(user, id);
   }
 public:
   AccountFactory() {
@@ -224,8 +233,8 @@ public:
     _listAccountTypes[OLD]    = &AccountFactory::createAccountOld;
   }
 
-  Account *createAccount(User *user, AccountType type) {
-    return (this->*_listAccountTypes[type])(user);
+  Account *createAccount(User *user, AccountType type, Id *id = NULL) {
+    return (this->*_listAccountTypes[type])(user, id);
   }
 
   ~AccountFactory() {}
@@ -236,17 +245,41 @@ private:
   std::list<Account *> _listAccounts;
   std::string _filename;
 
+  void  createFromALineCSV(const std::string &line) {
+    std::stringstream          lineStream(line);
+    std::string                userId;
+    std::string                accountType;
+    std::string                userLastName;
+    std::string                userFirstName;
+    std::string                userBirthdate;
+    std::string                idTutor;
+    std::string                solde;
+    std::string                transaction;
+
+    std::getline(lineStream, userId,        ',');
+    std::getline(lineStream, accountType,   ',');
+    std::getline(lineStream, userLastName,  ',');
+    std::getline(lineStream, userFirstName, ',');
+
+    std::cout << accountType << std::endl;
+    std::cout << userLastName << " | " << userFirstName << std::endl;
+    std::cout << line << std::endl;
+  }
 public:
   ListAccounts(const std::string &filename) : _filename(filename) {}
   ~ListAccounts() {}
 
   std::list<Account *>  &load() {
     std::ifstream file(_filename);
-
-    while (file) {
-      std::string line;
-      getline(file, line);
-
+    if (file) {
+      while (file) {
+        std::string line;
+        getline(file, line);
+        createFromALineCSV(line);
+      }
+    }
+    else {
+      std::cerr << "Error : Cannot load file : " << _filename << std::endl;
     }
     return _listAccounts;
   }
