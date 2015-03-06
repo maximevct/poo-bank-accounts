@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 class Date {
 private:
@@ -24,7 +25,7 @@ public:
 
   Date(const std::string &dateAsString)
     : _dateAsString(dateAsString) {
-    std::stringstream          lineStream(line);
+    std::stringstream          lineStream(_dateAsString);
     std::string                year;
     std::string                month;
     std::string                day;
@@ -32,6 +33,9 @@ public:
     std::getline(lineStream, year,  '-');
     std::getline(lineStream, month, '-');
     std::getline(lineStream, day,   '-');
+    _day   = std::stoi(day);
+    _month = std::stoi(month);
+    _year  = std::stoi(year);
   }
 
   Date(const Date &date)
@@ -58,11 +62,11 @@ public:
   const std::string  &getDateString()  const { return _dateAsString; }
 };
 
-std::ostream &operator<<(std::ostream &os, const Date &date) {
+std::ostream &operator<<(std::ostream &os, Date *date) {
   os  << std::setfill('0')
-      << std::setw(2) << date.getDay() << '/'
-      << std::setw(2) << date.getMonth() << '/'
-      << std::setw(4) << date.getYear();
+      << std::setw(2) << date->getDay() << '/'
+      << std::setw(2) << date->getMonth() << '/'
+      << std::setw(4) << date->getYear();
   return os;
 }
 
@@ -70,28 +74,28 @@ class User {
 private:
   std::string _firstName;
   std::string _lastName;
-  Date        _birthdate;
+  Date        *_birthdate;
   User        *_tutor;
 public:
-  User(const std::string &firstName, const std::string &lastName, const Date &date)
+  User(const std::string &firstName, const std::string &lastName, Date *date)
     : _firstName(firstName),
-      _lastName(lastName),
-      _birthdate(date) {
-    _tutor = NULL;
+      _lastName(lastName) {
+    _birthdate = date;
+    _tutor     = NULL;
   }
 
   User(const User &user)
     : _firstName(user.getFirstName()),
-      _lastName(user.getLastName()),
-      _birthdate(user.getDate()) {
-    _tutor = user.getTutor();
+      _lastName(user.getLastName()) {
+    _birthdate = user.getDate();
+    _tutor     = user.getTutor();
   }
 
   ~User() {}
 
   const std::string &getFirstName() const { return _firstName;  }
   const std::string &getLastName()  const { return _lastName;   }
-  const Date &getDate()             const { return _birthdate;  }
+  Date *getDate()             const { return _birthdate;  }
   User *getTutor()            const { return _tutor;      }
   void setTutor(User *tutor) { _tutor = tutor; }
 };
@@ -107,15 +111,22 @@ class Id {
 private:
   const std::string _id;
 public:
-  Id(const std::string id) : _id(id) {}
+  Id(const std::string &id) : _id(id) {}
 
   ~Id() {}
 
   const std::string &getId() const { return _id; }
-  bool operator==(const Id &id) {
-    return getId() == id.getId();
+  bool operator==(Id *id) {
+    return getId() == id->getId();
+  }
+  bool operator==(const std::string &id) {
+    return getId() == id;
   }
 };
+
+bool operator==(Id* idObj, const std::string &idStr) {
+  return idObj->getId() == idStr;
+}
 
 std::ostream &operator<<(std::ostream &os, const Id *id) {
   os << id->getId();
@@ -125,19 +136,19 @@ std::ostream &operator<<(std::ostream &os, const Id *id) {
 class IdGenerator {
 private:
   static IdGenerator *_instance;
-  std::list<Id> _listIds;
+  std::list<Id *>     _listIds;
 
   IdGenerator() {}
 
   bool  issetId(const std::string &id) {
-    std::list<Id>::iterator it;
+    std::list<Id *>::iterator it;
     it = find(_listIds.begin(), _listIds.end(), id);
     return it != _listIds.end();
   }
 
   Id *createNewId(const std::string &id) {
     Id *newId = new Id(id);
-    _listIds.push_back(id);
+    _listIds.push_back(newId);
     return newId;
   }
 
@@ -151,9 +162,14 @@ public:
 
   ~IdGenerator() {}
 
+  Id *useId(Id *id) {
+    _listIds.push_back(id);
+    return id;
+  }
+
   Id *generateId(User *user, const int i = 1) {
     std::string idAsString;
-    idAsString = user->getFirstName() + user->getLastName() + user->getDate().getDateString() + std::to_string(i);
+    idAsString = user->getFirstName() + user->getLastName() + user->getDate()->getDateString() + std::to_string(i);
     return (issetId(idAsString)) ? generateId(user, i + 1) : createNewId(idAsString);
   }
 };
@@ -180,7 +196,8 @@ protected:
 public:
   Account(User *user, Id *id = NULL) {
     _balance = 0;
-    _id = (id == NULL) ? IdGenerator::getInstance()->generateId(user) : id;
+    IdGenerator *idGen = IdGenerator::getInstance();
+    _id = (id == NULL) ? idGen->generateId(user) : idGen->useId(id);
   }
 
   virtual bool withdraw(const int amount, const Date &date) {
@@ -215,25 +232,31 @@ public:
 
 class AccountFactory {
 private:
-  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
-  static std::vector<Account *(AccountFactory::*)(User *, Id *)> _listAccountTypes;
+  std::vector<Account *(AccountFactory::*)(User *, Id *)> _listAccountTypes;
+
   Account *createAccountNormal(User *user, Id *id) {
     return new AccountNormal(user, id);
   }
+
   Account *createAccountChild(User *user, Id *id) {
     return new AccountChild(user, id);
   }
+
   Account *createAccountOld(User *user, Id *id) {
     return new AccountOld(user, id);
   }
 public:
+  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
+
   AccountFactory() {
+    _listAccountTypes.resize(3);
     _listAccountTypes[NORMAL] = &AccountFactory::createAccountNormal;
     _listAccountTypes[CHILD]  = &AccountFactory::createAccountChild;
     _listAccountTypes[OLD]    = &AccountFactory::createAccountOld;
   }
 
-  Account *createAccount(User *user, AccountType type, Id *id = NULL) {
+  Account *createAccount(User *user, AccountType type, Id *id) {
+    std::cout << *user << std::endl;
     return (this->*_listAccountTypes[type])(user, id);
   }
 
@@ -243,45 +266,42 @@ public:
 class ListAccounts {
 private:
   std::list<Account *> _listAccounts;
+  AccountFactory       _accountFactory;
   std::string _filename;
+  enum elemType { USER_ID, ACCOUNT_TYPE, USER_LASTNAME, USER_FIRSTNAME, USER_BIRTHDATE, ACCOUNT_TUTOR_ID, BALANCE, TRANSACTIONS };
 
   void  createFromALineCSV(const std::string &line) {
     std::stringstream          lineStream(line);
-    std::string                userId;
-    std::string                accountType;
-    std::string                userLastName;
-    std::string                userFirstName;
-    std::string                userBirthdate;
-    std::string                idTutor;
-    std::string                solde;
-    std::string                transaction;
+    std::vector<std::string>  _listElems;
 
-    std::getline(lineStream, userId,        ',');
-    std::getline(lineStream, accountType,   ',');
-    std::getline(lineStream, userLastName,  ',');
-    std::getline(lineStream, userFirstName, ',');
-
-    std::cout << accountType << std::endl;
-    std::cout << userLastName << " | " << userFirstName << std::endl;
-    std::cout << line << std::endl;
+    _listElems.resize(TRANSACTIONS);
+    for (int i = 0; lineStream; i++) {
+      if (i >= TRANSACTIONS)
+        _listElems.resize(i + 1);
+      std::getline(lineStream, _listElems[i], ',');
+    }
+    _accountFactory.createAccount(new User(_listElems[USER_FIRSTNAME],
+                                           _listElems[USER_LASTNAME],
+                                           new Date(_listElems[USER_BIRTHDATE])),
+                                  static_cast<AccountFactory::AccountType>('R'),
+                                  new Id(_listElems[USER_ID]));
   }
 public:
   ListAccounts(const std::string &filename) : _filename(filename) {}
   ~ListAccounts() {}
 
-  std::list<Account *>  &load() {
+  void  load() {
     std::ifstream file(_filename);
     if (file) {
       while (file) {
         std::string line;
-        getline(file, line);
-        createFromALineCSV(line);
+        if (getline(file, line))
+          createFromALineCSV(line);
       }
     }
     else {
       std::cerr << "Error : Cannot load file : " << _filename << std::endl;
     }
-    return _listAccounts;
   }
 };
 
