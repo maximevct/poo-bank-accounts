@@ -173,21 +173,16 @@ IdGenerator *IdGenerator::_instance = NULL;
 
 class Transaction {
 private:
-  int   _amount;
+  double _amount;
   Date  *_date;
 public:
-  Transaction(int amount, Date *date)
+  Transaction(double amount, Date *date)
     : _amount(amount) {
       _date = date;
     }
 
-  int getAmount() const {
-    return _amount;
-  }
-
-  Date *getDate() const {
-    return _date;
-  }
+  double getAmount() const { return _amount; }
+  Date *getDate() const { return _date; }
 };
 
 class Account {
@@ -196,13 +191,13 @@ public:
 protected:
   User  *_user;
   Id    *_id;
-  int   _balance;
+  double _balance;
   Account::AccountType _type;
   std::list<Transaction *> _listTransactions;
   Id    *_tutor;
 
 public:
-  Account(User *user, Id *id, int balance, Id *tutor) {
+  Account(User *user, Id *id, double balance, Id *tutor) {
     _user = user;
     _balance = balance;
     IdGenerator *idGen = IdGenerator::getInstance();
@@ -214,10 +209,10 @@ public:
   const User                     *getUser()         const { return _user; }
   const Id                       *getTutor()        const { return _tutor; }
   const std::list<Transaction *> &getTransactions() const { return _listTransactions; }
-  int                             getBalance()      const { return _balance; }
+  double                          getBalance()      const { return _balance; }
   AccountType                     getType()         const { return _type; }
 
-  virtual bool withdraw(const int amount, Date *date) {
+  virtual bool withdraw(const double amount, Date *date) {
     if (_balance > amount) {
       _balance -= amount;
       _listTransactions.push_back(new Transaction(amount, date));
@@ -226,7 +221,7 @@ public:
     return false;
   }
 
-  virtual void addTransaction(const int amount, Date *date) {
+  virtual void addTransaction(const double amount, Date *date) {
     _listTransactions.push_back(new Transaction(amount, date));
   }
 
@@ -235,7 +230,7 @@ public:
 
 class AccountNormal : public Account {
 public:
-  AccountNormal(User *user, Id *id, int balance, Id *tutor) : Account(user, id, balance, tutor) {
+  AccountNormal(User *user, Id *id, double balance, Id *tutor) : Account(user, id, balance, tutor) {
     _type = NORMAL;
   }
   virtual ~AccountNormal() {};
@@ -243,7 +238,7 @@ public:
 
 class AccountChild : public Account {
 public:
-  AccountChild(User *user, Id *id, int balance, Id *tutor) : Account(user, id, balance, tutor) {
+  AccountChild(User *user, Id *id, double balance, Id *tutor) : Account(user, id, balance, tutor) {
     _type = CHILD;
   }
   virtual ~AccountChild() {};
@@ -251,7 +246,7 @@ public:
 
 class AccountOld : public Account {
 public:
-  AccountOld(User *user, Id *id, int balance, Id *tutor) : Account(user, id, balance, tutor) {
+  AccountOld(User *user, Id *id, double balance, Id *tutor) : Account(user, id, balance, tutor) {
     _type = OLD;
   }
   virtual ~AccountOld() {};
@@ -259,17 +254,17 @@ public:
 
 class AccountFactory {
 private:
-  std::vector<Account *(AccountFactory::*)(User *, Id *, int, Id *)> _listAccountTypes;
+  std::vector<Account *(AccountFactory::*)(User *, Id *, double, Id *)> _listAccountTypes;
 
-  Account *createAccountNormal(User *user, Id *id, int balance, Id *tutor) {
+  Account *createAccountNormal(User *user, Id *id, double balance, Id *tutor) {
     return new AccountNormal(user, id, balance, tutor);
   }
 
-  Account *createAccountChild(User *user, Id *id, int balance, Id *tutor) {
+  Account *createAccountChild(User *user, Id *id, double balance, Id *tutor) {
     return new AccountChild(user, id, balance, tutor);
   }
 
-  Account *createAccountOld(User *user, Id *id, int balance, Id *tutor) {
+  Account *createAccountOld(User *user, Id *id, double balance, Id *tutor) {
     return new AccountOld(user, id, balance, tutor);
   }
 public:
@@ -280,7 +275,7 @@ public:
     _listAccountTypes[Account::OLD]    = &AccountFactory::createAccountOld;
   }
 
-  Account *createAccount(Account::AccountType type, User *user, Id *id, int balance = 0, Id *tutor = NULL) {
+  Account *createAccount(Account::AccountType type, User *user, Id *id, double balance = 0, Id *tutor = NULL) {
     return (this->*_listAccountTypes[type])(user, id, balance, tutor);
   }
 
@@ -289,9 +284,9 @@ public:
 
 class ListAccounts {
 private:
+  std::string          _filename;
   std::list<Account *> _listAccounts;
   AccountFactory       _accountFactory;
-  std::string _filename;
   enum elemType { USER_ID, ACCOUNT_TYPE, USER_LASTNAME, USER_FIRSTNAME, USER_BIRTHDATE, ACCOUNT_TUTOR_ID, BALANCE, TRANSACTIONS };
 
   void  createFromALineCSV(const std::string &line) {
@@ -323,19 +318,19 @@ private:
     _listAccounts.push_back(newAccount);
   }
 
-  const std::string getAccountStringAsCSV(Account *a) const {
-    std::string line;
-    line = a->getId()->getId()                           + ','
-         + static_cast<char>(a->getType())               + ','
-         + a->getUser()->getLastName()                   + ','
-         + a->getUser()->getFirstName()                  + ','
-         + a->getUser()->getBirthdate()->getDateString() + ','
-         + (a->getTutor() ? a->getTutor()->getId() : "") + ','
-         + std::to_string(a->getBalance());
+  void writeAccountStringAsCSV(std::ofstream &os, Account *a) {
+    os << a->getId()->getId()                           << ','
+       << static_cast<char>(a->getType())               << ','
+       << a->getUser()->getLastName()                   << ','
+       << a->getUser()->getFirstName()                  << ','
+       << a->getUser()->getBirthdate()->getDateString() << ','
+       << (a->getTutor() ? a->getTutor()->getId() : "") << ','
+       << std::fixed << std::setprecision(2) << a->getBalance();
     for (Transaction *t : a->getTransactions()) {
-      line += ',' + t->getDate()->getDateString() + ',' + std::to_string(t->getAmount());
+      os << ',' << t->getDate()->getDateString()
+         << ',' << t->getAmount();
     }
-    return line;
+    os << std::endl;
   }
 
 public:
@@ -360,7 +355,7 @@ public:
     std::ofstream file(_filename, std::ios::trunc);
     if (file) {
       for (Account *a : _listAccounts) {
-        file << getAccountStringAsCSV(a) << std::endl;
+        writeAccountStringAsCSV(file, a);
       }
     }
   }
