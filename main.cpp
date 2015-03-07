@@ -202,11 +202,11 @@ protected:
   Id    *_tutor;
 
 public:
-  Account(User *user, Id *id = NULL) {
+  Account(User *user, Id *id, int balance, Id *tutor) {
     _user = user;
-    _balance = 0;
+    _balance = balance;
     IdGenerator *idGen = IdGenerator::getInstance();
-    _tutor = NULL;
+    _tutor = tutor;
     _id = (id == NULL) ? idGen->generateId(user) : idGen->useId(id);
   }
 
@@ -235,7 +235,7 @@ public:
 
 class AccountNormal : public Account {
 public:
-  AccountNormal(User *user, Id *id) : Account(user, id) {
+  AccountNormal(User *user, Id *id, int balance, Id *tutor) : Account(user, id, balance, tutor) {
     _type = NORMAL;
   }
   virtual ~AccountNormal() {};
@@ -243,7 +243,7 @@ public:
 
 class AccountChild : public Account {
 public:
-  AccountChild(User *user, Id *id) : Account(user, id) {
+  AccountChild(User *user, Id *id, int balance, Id *tutor) : Account(user, id, balance, tutor) {
     _type = CHILD;
   }
   virtual ~AccountChild() {};
@@ -251,7 +251,7 @@ public:
 
 class AccountOld : public Account {
 public:
-  AccountOld(User *user, Id *id) : Account(user, id) {
+  AccountOld(User *user, Id *id, int balance, Id *tutor) : Account(user, id, balance, tutor) {
     _type = OLD;
   }
   virtual ~AccountOld() {};
@@ -259,18 +259,18 @@ public:
 
 class AccountFactory {
 private:
-  std::vector<Account *(AccountFactory::*)(User *, Id *)> _listAccountTypes;
+  std::vector<Account *(AccountFactory::*)(User *, Id *, int, Id *)> _listAccountTypes;
 
-  Account *createAccountNormal(User *user, Id *id) {
-    return new AccountNormal(user, id);
+  Account *createAccountNormal(User *user, Id *id, int balance, Id *tutor) {
+    return new AccountNormal(user, id, balance, tutor);
   }
 
-  Account *createAccountChild(User *user, Id *id) {
-    return new AccountChild(user, id);
+  Account *createAccountChild(User *user, Id *id, int balance, Id *tutor) {
+    return new AccountChild(user, id, balance, tutor);
   }
 
-  Account *createAccountOld(User *user, Id *id) {
-    return new AccountOld(user, id);
+  Account *createAccountOld(User *user, Id *id, int balance, Id *tutor) {
+    return new AccountOld(user, id, balance, tutor);
   }
 public:
   AccountFactory() {
@@ -280,8 +280,8 @@ public:
     _listAccountTypes[Account::OLD]    = &AccountFactory::createAccountOld;
   }
 
-  Account *createAccount(User *user, Account::AccountType type, Id *id) {
-    return (this->*_listAccountTypes[type])(user, id);
+  Account *createAccount(Account::AccountType type, User *user, Id *id, int balance = 0, Id *tutor = NULL) {
+    return (this->*_listAccountTypes[type])(user, id, balance, tutor);
   }
 
   ~AccountFactory() {}
@@ -302,11 +302,13 @@ private:
       std::getline(lineStream, _listElems[i], ',');
     }
     Account *newAccount = _accountFactory.createAccount(
-      new User(_listElems[USER_FIRSTNAME],
-      _listElems[USER_LASTNAME],
-      new Date(_listElems[USER_BIRTHDATE])),
       static_cast<Account::AccountType>(_listElems[ACCOUNT_TYPE][0]),
-      new Id(_listElems[USER_ID])
+      new User(_listElems[USER_FIRSTNAME],
+        _listElems[USER_LASTNAME],
+        new Date(_listElems[USER_BIRTHDATE])),
+      new Id(_listElems[USER_ID]),
+      std::stod(_listElems[BALANCE]),
+      (_listElems[ACCOUNT_TUTOR_ID].length() ? (new Id(_listElems[ACCOUNT_TUTOR_ID])) : NULL)
     );
 
     std::string transactionAmount;
@@ -314,7 +316,9 @@ private:
     while (lineStream) {
       std::getline(lineStream, transactionDate, ',');
       std::getline(lineStream, transactionAmount, ',');
-      newAccount->addTransaction(std::stod(transactionAmount), new Date(transactionDate));
+      if (lineStream) {
+        newAccount->addTransaction(std::stod(transactionAmount), new Date(transactionDate));
+      }
     }
     _listAccounts.push_back(newAccount);
   }
@@ -329,7 +333,7 @@ private:
          + (a->getTutor() ? a->getTutor()->getId() : "") + ','
          + std::to_string(a->getBalance());
     for (Transaction *t : a->getTransactions()) {
-      line += ',' + std::to_string(t->getAmount()) + ',' + t->getDate()->getDateString();
+      line += ',' + t->getDate()->getDateString() + ',' + std::to_string(t->getAmount());
     }
     return line;
   }
