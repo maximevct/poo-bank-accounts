@@ -75,35 +75,30 @@ private:
   std::string _firstName;
   std::string _lastName;
   Date        *_birthdate;
-  User        *_tutor;
 public:
   User(const std::string &firstName, const std::string &lastName, Date *date)
     : _firstName(firstName),
       _lastName(lastName) {
     _birthdate = date;
-    _tutor     = NULL;
   }
 
   User(const User &user)
     : _firstName(user.getFirstName()),
       _lastName(user.getLastName()) {
-    _birthdate = user.getDate();
-    _tutor     = user.getTutor();
+    _birthdate = user.getBirthdate();
   }
 
   ~User() {}
 
   const std::string &getFirstName() const { return _firstName;  }
   const std::string &getLastName()  const { return _lastName;   }
-  Date *getDate()             const { return _birthdate;  }
-  User *getTutor()            const { return _tutor;      }
-  void setTutor(User *tutor) { _tutor = tutor; }
+  Date *getBirthdate()              const { return _birthdate;  }
 };
 
 std::ostream &operator<<(std::ostream &os, const User &user) {
   os << "Firstname : " << user.getFirstName() << "\n"
      << "Lastname  : " << user.getLastName() << "\n"
-     << "Birthdate : " << user.getDate();
+     << "Birthdate : " << user.getBirthdate();
   return os;
 }
 
@@ -169,7 +164,7 @@ public:
 
   Id *generateId(User *user, const int i = 1) {
     std::string idAsString;
-    idAsString = user->getFirstName() + user->getLastName() + user->getDate()->getDateString() + std::to_string(i);
+    idAsString = user->getFirstName() + user->getLastName() + user->getBirthdate()->getDateString() + std::to_string(i);
     return (issetId(idAsString)) ? generateId(user, i + 1) : createNewId(idAsString);
   }
 };
@@ -179,28 +174,50 @@ IdGenerator *IdGenerator::_instance = NULL;
 class Transaction {
 private:
   int   _amount;
-  Date  _date;
+  Date  *_date;
 public:
-  Transaction(int amount, const Date &date)
-    : _amount(amount),
-      _date(date) {}
+  Transaction(int amount, Date *date)
+    : _amount(amount) {
+      _date = date;
+    }
+
+  int getAmount() const {
+    return _amount;
+  }
+
+  Date *getDate() const {
+    return _date;
+  }
 };
 
 class Account {
+public:
+  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
 protected:
   User  *_user;
   Id    *_id;
   int   _balance;
+  Account::AccountType _type;
   std::list<Transaction *> _listTransactions;
+  Id    *_tutor;
 
 public:
   Account(User *user, Id *id = NULL) {
+    _user = user;
     _balance = 0;
     IdGenerator *idGen = IdGenerator::getInstance();
+    _tutor = NULL;
     _id = (id == NULL) ? idGen->generateId(user) : idGen->useId(id);
   }
 
-  virtual bool withdraw(const int amount, const Date &date) {
+  const Id                       *getId()           const { return _id; }
+  const User                     *getUser()         const { return _user; }
+  const Id                       *getTutor()        const { return _tutor; }
+  const std::list<Transaction *> &getTransactions() const { return _listTransactions; }
+  int                             getBalance()      const { return _balance; }
+  AccountType                     getType()         const { return _type; }
+
+  virtual bool withdraw(const int amount, Date *date) {
     if (_balance > amount) {
       _balance -= amount;
       _listTransactions.push_back(new Transaction(amount, date));
@@ -209,24 +226,34 @@ public:
     return false;
   }
 
+  virtual void addTransaction(const int amount, Date *date) {
+    _listTransactions.push_back(new Transaction(amount, date));
+  }
+
   virtual ~Account() {}
 };
 
 class AccountNormal : public Account {
 public:
-  AccountNormal(User *user, Id *id) : Account(user, id) {}
+  AccountNormal(User *user, Id *id) : Account(user, id) {
+    _type = NORMAL;
+  }
   virtual ~AccountNormal() {};
 };
 
 class AccountChild : public Account {
 public:
-  AccountChild(User *user, Id *id) : Account(user, id) {}
+  AccountChild(User *user, Id *id) : Account(user, id) {
+    _type = CHILD;
+  }
   virtual ~AccountChild() {};
 };
 
 class AccountOld : public Account {
 public:
-  AccountOld(User *user, Id *id) : Account(user, id) {}
+  AccountOld(User *user, Id *id) : Account(user, id) {
+    _type = OLD;
+  }
   virtual ~AccountOld() {};
 };
 
@@ -246,17 +273,14 @@ private:
     return new AccountOld(user, id);
   }
 public:
-  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
-
   AccountFactory() {
     _listAccountTypes.resize(3);
-    _listAccountTypes[NORMAL] = &AccountFactory::createAccountNormal;
-    _listAccountTypes[CHILD]  = &AccountFactory::createAccountChild;
-    _listAccountTypes[OLD]    = &AccountFactory::createAccountOld;
+    _listAccountTypes[Account::NORMAL] = &AccountFactory::createAccountNormal;
+    _listAccountTypes[Account::CHILD]  = &AccountFactory::createAccountChild;
+    _listAccountTypes[Account::OLD]    = &AccountFactory::createAccountOld;
   }
 
-  Account *createAccount(User *user, AccountType type, Id *id) {
-    std::cout << *user << std::endl;
+  Account *createAccount(User *user, Account::AccountType type, Id *id) {
     return (this->*_listAccountTypes[type])(user, id);
   }
 
@@ -272,20 +296,44 @@ private:
 
   void  createFromALineCSV(const std::string &line) {
     std::stringstream          lineStream(line);
-    std::vector<std::string>  _listElems;
+    std::vector<std::string>  _listElems(TRANSACTIONS);
 
-    _listElems.resize(TRANSACTIONS);
-    for (int i = 0; lineStream; i++) {
-      if (i >= TRANSACTIONS)
-        _listElems.resize(i + 1);
+    for (int i = 0; lineStream && i < TRANSACTIONS; i++) {
       std::getline(lineStream, _listElems[i], ',');
     }
-    _accountFactory.createAccount(new User(_listElems[USER_FIRSTNAME],
-                                           _listElems[USER_LASTNAME],
-                                           new Date(_listElems[USER_BIRTHDATE])),
-                                  static_cast<AccountFactory::AccountType>('R'),
-                                  new Id(_listElems[USER_ID]));
+    Account *newAccount = _accountFactory.createAccount(
+      new User(_listElems[USER_FIRSTNAME],
+      _listElems[USER_LASTNAME],
+      new Date(_listElems[USER_BIRTHDATE])),
+      static_cast<Account::AccountType>(_listElems[ACCOUNT_TYPE][0]),
+      new Id(_listElems[USER_ID])
+    );
+
+    std::string transactionAmount;
+    std::string transactionDate;
+    while (lineStream) {
+      std::getline(lineStream, transactionDate, ',');
+      std::getline(lineStream, transactionAmount, ',');
+      newAccount->addTransaction(std::stod(transactionAmount), new Date(transactionDate));
+    }
+    _listAccounts.push_back(newAccount);
   }
+
+  const std::string getAccountStringAsCSV(Account *a) const {
+    std::string line;
+    line = a->getId()->getId()                           + ','
+         + static_cast<char>(a->getType())               + ','
+         + a->getUser()->getLastName()                   + ','
+         + a->getUser()->getFirstName()                  + ','
+         + a->getUser()->getBirthdate()->getDateString() + ','
+         + (a->getTutor() ? a->getTutor()->getId() : "") + ','
+         + std::to_string(a->getBalance());
+    for (Transaction *t : a->getTransactions()) {
+      line += ',' + std::to_string(t->getAmount()) + ',' + t->getDate()->getDateString();
+    }
+    return line;
+  }
+
 public:
   ListAccounts(const std::string &filename) : _filename(filename) {}
   ~ListAccounts() {}
@@ -303,11 +351,23 @@ public:
       std::cerr << "Error : Cannot load file : " << _filename << std::endl;
     }
   }
+
+  void save() {
+    std::ofstream file(_filename, std::ios::trunc);
+    if (file) {
+      for (Account *a : _listAccounts) {
+        file << getAccountStringAsCSV(a) << std::endl;
+      }
+    }
+  }
 };
 
 int     main(int ac, char *av[]) {
-  ListAccounts    listAccounts(av[1]);
+  if (ac == 2) {
+    ListAccounts    listAccounts(av[1]);
+    listAccounts.load();
+    listAccounts.save();
+  }
 
-  listAccounts.load();
   return 0;
 }
