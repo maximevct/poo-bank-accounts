@@ -1,8 +1,22 @@
 NAME        = tp2
-SRC         = main.cpp
+SRC_DIR     = src
+SRC         = $(SRC_DIR)/main.cpp 						\
+							$(SRC_DIR)/AccountChild.cpp			\
+							$(SRC_DIR)/Account.cpp					\
+							$(SRC_DIR)/AccountFactory.cpp		\
+							$(SRC_DIR)/AccountNormal.cpp		\
+							$(SRC_DIR)/AccountOld.cpp				\
+							$(SRC_DIR)/Date.cpp							\
+							$(SRC_DIR)/God.cpp							\
+							$(SRC_DIR)/Id.cpp								\
+							$(SRC_DIR)/IdGenerator.cpp			\
+							$(SRC_DIR)/ListAccounts.cpp			\
+							$(SRC_DIR)/Transaction.cpp			\
+							$(SRC_DIR)/User.cpp
+INCLUDE_DIR = include
 OBJ         = $(SRC:.cpp=.o)
 CXX         = g++
-CXXFLAGS    = -W -Wall -Wextra -std=c++11
+CXXFLAGS    = -W -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
 RM          = rm -vf
 
 all:      $(NAME)

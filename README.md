@@ -9,11 +9,39 @@ Programmation orientée objet
   - Compilateur : g++
 
 ### Fichiers
-  - main.cpp
-  - main.hh
+  - **src**
+    - AccountChild.cpp
+    - Account.cpp
+    - AccountFactory.cpp
+    - AccountNormal.cpp
+    - AccountOld.cpp
+    - Date.cpp
+    - God.cpp
+    - Id.cpp
+    - IdGenerator.cpp
+    - ListAccounts.cpp
+    - main.cpp
+    - test.cpp
+    - Transaction.cpp
+    - User.cpp
+  - **include**
+    - AccountChild.hh
+    - AccountFactory.hh
+    - Account.hh
+    - AccountNormal.hh
+    - AccountOld.hh
+    - Date.hh
+    - God.hh
+    - IdGenerator.hh
+    - Id.hh
+    - ListAccounts.hh
+    - main.hh
+    - Transaction.hh
+    - User.hh
   - Makefile
   - Readme.md
-  - banque.csv
+  - **dataset**
+    - banque.csv
 
 ### Comment l'utiliser :
 ```bash
