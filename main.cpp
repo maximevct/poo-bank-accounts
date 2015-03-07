@@ -6,6 +6,25 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <cstdlib>
+
+class God {
+public:
+  // Calculus to emulate God reflexion when someone wants something
+  // Pretty accurate but not very sure he really use this way...
+  static bool doYouAuthorizeThisMyLord() {
+    int imAFeelingGoodToday = rand() % 2;
+    int repeatMeThatIAmTheBestUntilITellYouToStop = rand() % 10;
+    int justKiddingButTellMeAgain = rand() % 42 + 12;
+    int doItAgainMotherFu = 0;
+    while (repeatMeThatIAmTheBestUntilITellYouToStop != 7) {
+      doItAgainMotherFu++;
+      repeatMeThatIAmTheBestUntilITellYouToStop = rand() % 10;
+    }
+    justKiddingButTellMeAgain /= doItAgainMotherFu + 1;
+    return imAFeelingGoodToday == (justKiddingButTellMeAgain > repeatMeThatIAmTheBestUntilITellYouToStop);
+  }
+};
 
 class Date {
 private:
@@ -60,6 +79,17 @@ public:
   const unsigned int &getMonth()       const { return _month;        }
   const unsigned int &getYear()        const { return _year;         }
   const std::string  &getDateString()  const { return _dateAsString; }
+
+  bool compareDay(Date *date) const {
+    return _day   == date->getDay()
+        && _month == date->getMonth()
+        && _year  == date->getYear();
+  }
+
+  bool compareMonth(Date *date) const {
+    return _month == date->getMonth()
+        && _year  == date->getYear();
+  }
 };
 
 std::ostream &operator<<(std::ostream &os, Date *date) {
@@ -107,13 +137,14 @@ private:
   const std::string _id;
 public:
   Id(const std::string &id) : _id(id) {}
-
   ~Id() {}
 
   const std::string &getId() const { return _id; }
+
   bool operator==(Id *id) {
     return getId() == id->getId();
   }
+
   bool operator==(const std::string &id) {
     return getId() == id;
   }
@@ -187,22 +218,40 @@ public:
 
 class Account {
 public:
-  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
+  enum AccountType    { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
+  enum WithdrawStatus { SUCCESS, INSUF_BALANCE, DAY_LIMIT, MONTH_LIMIT, UNAUTHORIZED };
 protected:
-  User  *_user;
-  Id    *_id;
-  double _balance;
-  Account::AccountType _type;
+  User                    *_user;
+  Id                      *_id;
+  Id                      *_tutor;
+  double                   _balance;
+  Account::AccountType     _type;
   std::list<Transaction *> _listTransactions;
-  Id    *_tutor;
 
+  double getTotalWithdrawThisDay(Date *date) {
+    double sum = 0;
+    for (Transaction *t : _listTransactions) {
+      if (t->getDate()->compareDay(date))
+        sum += t->getAmount();
+    }
+    return sum;
+  }
+
+  double getTotalWithdrawThisMonth(Date *date) {
+    double sum = 0;
+    for (Transaction *t : _listTransactions) {
+      if (t->getDate()->compareMonth(date))
+        sum += t->getAmount();
+    }
+    return sum;
+  }
 public:
   Account(User *user, Id *id, double balance, Id *tutor) {
-    _user = user;
-    _balance = balance;
+    _user              = user;
+    _balance           = balance;
     IdGenerator *idGen = IdGenerator::getInstance();
-    _tutor = tutor;
-    _id = (id == NULL) ? idGen->generateId(user) : idGen->useId(id);
+    _tutor             = tutor;
+    _id                = (id == NULL) ? idGen->generateId(user) : idGen->useId(id);
   }
 
   const Id                       *getId()           const { return _id; }
@@ -212,13 +261,13 @@ public:
   double                          getBalance()      const { return _balance; }
   AccountType                     getType()         const { return _type; }
 
-  virtual bool withdraw(const double amount, Date *date) {
+  virtual WithdrawStatus withdraw(const double amount, Date *date) {
     if (_balance > amount) {
       _balance -= amount;
       _listTransactions.push_back(new Transaction(amount, date));
-      return true;
+      return SUCCESS;
     }
-    return false;
+    return INSUF_BALANCE;
   }
 
   virtual void addTransaction(const double amount, Date *date) {
@@ -242,6 +291,21 @@ public:
     _type = CHILD;
   }
   virtual ~AccountChild() {};
+
+  virtual WithdrawStatus withdraw(const double amount, Date *date) {
+    if (getTotalWithdrawThisDay(date) > 10) {
+      return DAY_LIMIT;
+    }
+    if (getTotalWithdrawThisMonth(date) > 50) {
+      return MONTH_LIMIT;
+    }
+    if (_balance > amount) {
+      _balance -= amount;
+      _listTransactions.push_back(new Transaction(amount, date));
+      return SUCCESS;
+    }
+    return INSUF_BALANCE;
+  }
 };
 
 class AccountOld : public Account {
@@ -250,6 +314,18 @@ public:
     _type = OLD;
   }
   virtual ~AccountOld() {};
+
+  virtual WithdrawStatus withdraw(const double amount, Date *date) {
+    if (!God::doYouAuthorizeThisMyLord()) {
+      return UNAUTHORIZED;
+    }
+    if (_balance > amount) {
+      _balance -= amount;
+      _listTransactions.push_back(new Transaction(amount, date));
+      return SUCCESS;
+    }
+    return INSUF_BALANCE;
+  }
 };
 
 class AccountFactory {
@@ -318,21 +394,6 @@ private:
     _listAccounts.push_back(newAccount);
   }
 
-  void writeAccountStringAsCSV(std::ofstream &os, Account *a) {
-    os << a->getId()->getId()                           << ','
-       << static_cast<char>(a->getType())               << ','
-       << a->getUser()->getLastName()                   << ','
-       << a->getUser()->getFirstName()                  << ','
-       << a->getUser()->getBirthdate()->getDateString() << ','
-       << (a->getTutor() ? a->getTutor()->getId() : "") << ','
-       << std::fixed << std::setprecision(2) << a->getBalance();
-    for (Transaction *t : a->getTransactions()) {
-      os << ',' << t->getDate()->getDateString()
-         << ',' << t->getAmount();
-    }
-    os << std::endl;
-  }
-
 public:
   ListAccounts(const std::string &filename) : _filename(filename) {}
   ~ListAccounts() {}
@@ -355,7 +416,18 @@ public:
     std::ofstream file(_filename, std::ios::trunc);
     if (file) {
       for (Account *a : _listAccounts) {
-        writeAccountStringAsCSV(file, a);
+        file << a->getId()->getId()                           << ','
+             << static_cast<char>(a->getType())               << ','
+             << a->getUser()->getLastName()                   << ','
+             << a->getUser()->getFirstName()                  << ','
+             << a->getUser()->getBirthdate()->getDateString() << ','
+             << (a->getTutor() ? a->getTutor()->getId() : "") << ','
+             << std::fixed << std::setprecision(2) << a->getBalance();
+        for (Transaction *t : a->getTransactions()) {
+          file << ',' << t->getDate()->getDateString()
+               << ',' << t->getAmount();
+        }
+        file << std::endl;
       }
     }
   }
