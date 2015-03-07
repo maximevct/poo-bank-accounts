@@ -1,0 +1,36 @@
+#include "IdGenerator.hh"
+
+IdGenerator *IdGenerator::_instance = NULL;
+
+bool  IdGenerator::issetId(const std::string &id) {
+  std::list<Id *>::iterator it;
+  it = find(_listIds.begin(), _listIds.end(), id);
+  return it != _listIds.end();
+}
+
+Id *IdGenerator::createNewId(const std::string &id) {
+  Id *newId = new Id(id);
+  _listIds.push_back(newId);
+  return newId;
+}
+
+IdGenerator *IdGenerator::getInstance() {
+  if (_instance == NULL) {
+    _instance = new IdGenerator();
+  }
+  return _instance;
+}
+
+IdGenerator::IdGenerator() {}
+IdGenerator::~IdGenerator() {}
+
+Id *IdGenerator::useId(Id *id) {
+  _listIds.push_back(id);
+  return id;
+}
+
+Id *IdGenerator::generateId(User *user, const int i) {
+  std::string idAsString;
+  idAsString = user->getFirstName() + user->getLastName() + user->getBirthdate()->getDateString() + std::to_string(i);
+  return (issetId(idAsString)) ? generateId(user, i + 1) : createNewId(idAsString);
+}
