@@ -10,8 +10,8 @@
 
 class Account {
 public:
-  enum AccountType    { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
-  enum WithdrawStatus { SUCCESS, INSUF_BALANCE, DAY_LIMIT, MONTH_LIMIT, UNAUTHORIZED };
+  enum AccountType       { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
+  enum TransactionStatus { SUCCESS, INSUF_BALANCE, DAY_LIMIT, MONTH_LIMIT, UNAUTHORIZED };
 protected:
   User                    *_user;
   Id                      *_id;
@@ -31,7 +31,8 @@ public:
   double                          getBalance()      const;
   AccountType                     getType()         const;
 
-  virtual WithdrawStatus withdraw(const double amount, Date *date);
+  virtual TransactionStatus withdraw(const double amount, Date *date);
+  virtual TransactionStatus deposit(const double amount, Date *date);
   virtual void addTransaction(const double amount, Date *date);
   virtual ~Account();
 };

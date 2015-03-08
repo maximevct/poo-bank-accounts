@@ -6,7 +6,7 @@ AccountOld::AccountOld(User *user, Id *id, double balance, Id *tutor) : Account(
 
 AccountOld::~AccountOld() {};
 
-AccountOld::WithdrawStatus AccountOld::withdraw(const double amount, Date *date) {
+AccountOld::TransactionStatus AccountOld::withdraw(const double amount, Date *date) {
   if (!God::doYouAuthorizeThisMyLord()) {
     return UNAUTHORIZED;
   }

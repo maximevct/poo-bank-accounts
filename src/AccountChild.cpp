@@ -7,7 +7,7 @@ AccountChild::AccountChild(User *user, Id *id, double balance, Id *tutor)
 
 AccountChild::~AccountChild() {}
 
-AccountChild::WithdrawStatus AccountChild::withdraw(const double amount, Date *date) {
+AccountChild::TransactionStatus AccountChild::withdraw(const double amount, Date *date) {
   if (getTotalWithdrawThisDay(date) > 10) {
     return DAY_LIMIT;
   }

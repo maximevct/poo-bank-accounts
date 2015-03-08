@@ -13,7 +13,6 @@ Account *AccountFactory::createAccountOld(User *user, Id *id, double balance, Id
 }
 
 AccountFactory::AccountFactory() {
-  _listAccountTypes.resize(3);
   _listAccountTypes[Account::NORMAL] = &AccountFactory::createAccountNormal;
   _listAccountTypes[Account::CHILD]  = &AccountFactory::createAccountChild;
   _listAccountTypes[Account::OLD]    = &AccountFactory::createAccountOld;

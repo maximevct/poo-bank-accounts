@@ -29,8 +29,30 @@ void  ListAccounts::createFromALineCSV(const std::string &line) {
   _listAccounts.push_back(newAccount);
 }
 
-ListAccounts::ListAccounts(const std::string &filename) : _filename(filename) {}
+ListAccounts::ListAccounts(const std::string &filename) : _filename(filename) {
+  _menuListAccounts = new Menu<void, ListAccounts>(this);
+  _menuListAccounts->push_back("Display account list", &ListAccounts::displayListAccounts);
+  _menuListAccounts->push_back("Select an account"   , &ListAccounts::selectAnAccount);
+  _menuListAccounts->push_back("Add an account"      , &ListAccounts::addAnAccount);
+}
+
 ListAccounts::~ListAccounts() {}
+
+void ListAccounts::displayListAccounts() {
+  std::cout << "List of all accounts :" << std::endl;
+  for (Account *a : _listAccounts) {
+    std::cout << a->getUser()->getBirthdate()->getDateString() << std::endl;
+  }
+  std::cout << "--------------" << std::endl;
+}
+
+void ListAccounts::selectAnAccount() {
+
+}
+
+void ListAccounts::addAnAccount() {
+
+}
 
 void  ListAccounts::load() {
   std::ifstream file(_filename);
@@ -64,4 +86,8 @@ void ListAccounts::save() {
       file << std::endl;
     }
   }
+}
+
+void ListAccounts::menu() {
+  _menuListAccounts->show();
 }

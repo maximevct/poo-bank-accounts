@@ -33,13 +33,18 @@ const std::list<Transaction *> &Account::getTransactions() const { return _listT
 double                          Account::getBalance()      const { return _balance; }
 Account::AccountType            Account::getType()         const { return _type; }
 
-Account::WithdrawStatus Account::withdraw(const double amount, Date *date) {
+Account::TransactionStatus Account::withdraw(const double amount, Date *date) {
   if (_balance > amount) {
     _balance -= amount;
     _listTransactions.push_back(new Transaction(amount, date));
     return Account::SUCCESS;
   }
   return Account::INSUF_BALANCE;
+}
+
+Account::TransactionStatus Account::deposit(const double amount, Date *date) {
+  _listTransactions.push_back(new Transaction(amount, date));
+  return Account::SUCCESS;
 }
 
 void Account::addTransaction(const double amount, Date *date) {

@@ -16,7 +16,7 @@ SRC         = $(SRC_DIR)/main.cpp 						\
 INCLUDE_DIR = include
 OBJ         = $(SRC:.cpp=.o)
 CXX         = g++
-CXXFLAGS    = -W -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR)
+CXXFLAGS    = -W -Wall -Wextra -std=c++11 -I $(INCLUDE_DIR) -g -ggdb
 RM          = rm -vf
 
 all:      $(NAME)

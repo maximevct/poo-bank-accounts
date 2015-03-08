@@ -8,7 +8,7 @@ public:
   AccountChild(User *user, Id *id, double balance, Id *tutor);
   virtual ~AccountChild();
 
-  virtual WithdrawStatus withdraw(const double amount, Date *date);
+  virtual TransactionStatus withdraw(const double amount, Date *date);
 };
 
 #endif // ACCOUNT_CHILD_HH

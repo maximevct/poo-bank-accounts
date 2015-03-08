@@ -8,7 +8,7 @@ class AccountOld : public Account {
 public:
   AccountOld(User *user, Id *id, double balance, Id *tutor);
   virtual ~AccountOld();
-  virtual WithdrawStatus withdraw(const double amount, Date *date);
+  virtual TransactionStatus withdraw(const double amount, Date *date);
 };
 
 #endif // ACCOUNT_OLD_HH
