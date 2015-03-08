@@ -5,16 +5,17 @@
 #include <string>
 #include <iostream>
 
-#include <typeinfo>
-
 template<typename T, typename U>
 class Menu {
   std::vector<std::string>  _listChoices;
   std::vector<T (U::*)()>            _listFunctions;
   U *_context;
+  std::string _title;
 public:
-  Menu(U *context) {
+  Menu(U *context, const std::string &title) : _title(title) {
     _context = context;
+    _listChoices.push_back("Quit");
+    _listFunctions.push_back(NULL);
   }
   ~Menu() {}
 
@@ -24,19 +25,24 @@ public:
   }
 
   void show() {
-    int i = 0;
-    for (auto choice : _listChoices) {
-      std::cout << i++ << "] " << choice << std::endl;
+    int entry = -1;
+    while (entry != 0) {
+      int i = 0;
+      std::cout << "|------" << _title << std::setfill('-') << std::setw(50 - _title.length()) << "|" << std::setfill(' ') << std::endl;
+      for (auto choice : _listChoices) {
+        std::cout << "|" << std::setw(4) << i++ << "] " << choice << std::setw(50 - choice.length()) << "|" << std::endl;
+      }
+      std::cout << "|" << std::setfill('-') << std::setw(56) << "|" << std::setfill(' ') << std::endl;
+      std::cout << "Enter your choice : ";
+      std::cin >> entry;
+      std::cin.ignore(1);
+      if (entry >= _listChoices.size()) {
+        std::cout << "Invalid Choice" << std::endl;
+      }
+      else if (entry) {
+        (_context->*_listFunctions[entry])();
+      }
     }
-    std::cout << "Enter your choice : ";
-    int entry = 0;
-    std::cin >> entry;
-    if (entry > _listChoices.size()) {
-      std::cout << "Invalid Choice" << std::endl;
-      show();
-    }
-    std::cout << entry << std::endl;
-    (_context->*_listFunctions[entry])();
   }
 };
 

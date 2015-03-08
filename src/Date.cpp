@@ -58,10 +58,11 @@ bool Date::compareMonth(Date *date) const {
       && _year  == date->getYear();
 }
 
-std::ostream &operator<<(std::ostream &os, Date *date) {
+std::ostream &operator<<(std::ostream &os, const Date *date) {
   os  << std::setfill('0')
       << std::setw(2) << date->getDay() << '/'
       << std::setw(2) << date->getMonth() << '/'
-      << std::setw(4) << date->getYear();
+      << std::setw(4) << date->getYear()
+      << std::setfill(' ');
   return os;
 }

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 #include "AccountFactory.hh"
 #include "Menu.hh"
@@ -27,6 +28,8 @@ public:
   void displayListAccounts();
   void selectAnAccount();
   void addAnAccount();
+
+  Account *getById(const std::string &);
 };
 
 #endif // LIST_ACCOUNTS_HH

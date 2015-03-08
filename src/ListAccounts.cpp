@@ -30,7 +30,7 @@ void  ListAccounts::createFromALineCSV(const std::string &line) {
 }
 
 ListAccounts::ListAccounts(const std::string &filename) : _filename(filename) {
-  _menuListAccounts = new Menu<void, ListAccounts>(this);
+  _menuListAccounts = new Menu<void, ListAccounts>(this, "Main Menu");
   _menuListAccounts->push_back("Display account list", &ListAccounts::displayListAccounts);
   _menuListAccounts->push_back("Select an account"   , &ListAccounts::selectAnAccount);
   _menuListAccounts->push_back("Add an account"      , &ListAccounts::addAnAccount);
@@ -41,13 +41,32 @@ ListAccounts::~ListAccounts() {}
 void ListAccounts::displayListAccounts() {
   std::cout << "List of all accounts :" << std::endl;
   for (Account *a : _listAccounts) {
-    std::cout << a->getUser()->getBirthdate()->getDateString() << std::endl;
+    std::cout << a << std::endl;
+    std::cout << std::setfill('=') << std::setw(70) << "" << std::setfill(' ') << std::endl;
   }
-  std::cout << "--------------" << std::endl;
+}
+
+Account *ListAccounts::getById(const std::string &id) {
+  std::list<Account *>::iterator it;
+  it = find(_listAccounts.begin(), _listAccounts.end(), id);
+  return (it != _listAccounts.end() ? *it : NULL);
 }
 
 void ListAccounts::selectAnAccount() {
-
+  std::string id;
+  std::cout << "Enter the ID account (0 to quit): ";
+  std::getline(std::cin, id);
+  Account *selected = getById(id);
+  if (!selected)
+    return;
+  if (selected) {
+    std::cout << selected << std::endl;
+    selected->menu();
+  }
+  else {
+    std::cout << "Invalid Id, try again" << std::endl;
+    selectAnAccount();
+  }
 }
 
 void ListAccounts::addAnAccount() {

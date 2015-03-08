@@ -13,4 +13,6 @@ public:
   Date  *getDate()   const;
 };
 
+std::ostream &operator<<(std::ostream &, Transaction *);
+
 #endif // TRANSACTION_HH

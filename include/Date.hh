@@ -29,4 +29,6 @@ public:
   bool compareMonth(Date *date) const;
 };
 
+std::ostream &operator<<(std::ostream &os, const Date *date);
+
 #endif // DATE_HH

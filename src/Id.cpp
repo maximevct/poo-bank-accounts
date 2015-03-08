@@ -13,7 +13,7 @@ bool Id::operator==(const std::string &id) {
   return getId() == id;
 }
 
-bool operator==(Id* idObj, const std::string &idStr) {
+bool operator==(const Id* idObj, const std::string &idStr) {
   return idObj->getId() == idStr;
 }
 
