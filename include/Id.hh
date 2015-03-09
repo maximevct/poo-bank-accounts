@@ -11,11 +11,9 @@ public:
   ~Id();
 
   const std::string &getId() const;
-  bool operator==(Id *id);
-  bool operator==(const std::string &id);
 };
 
-bool operator==(const Id* idObj, const std::string &idStr);
+bool operator==(Id* idObj, const std::string &idStr);
 std::ostream &operator<<(std::ostream &os, const Id *id);
 
 #endif // ID_HH

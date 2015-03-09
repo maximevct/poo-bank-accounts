@@ -5,15 +5,7 @@ Id::~Id() {}
 
 const std::string &Id::getId() const { return _id; }
 
-bool Id::operator==(Id *id) {
-  return getId() == id->getId();
-}
-
-bool Id::operator==(const std::string &id) {
-  return getId() == id;
-}
-
-bool operator==(const Id* idObj, const std::string &idStr) {
+bool operator==(Id* idObj, const std::string &idStr) {
   return idObj->getId() == idStr;
 }
 

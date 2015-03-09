@@ -6,9 +6,9 @@
 
 class AccountOld : public Account {
 public:
-  AccountOld(User *user, Id *id, double balance, Id *tutor);
+  AccountOld(User *user, Id *id, double balance, Account *tutor);
   virtual ~AccountOld();
-  virtual TransactionStatus withdraw(const double amount, Date *date);
+  virtual Transaction::Status withdraw(const double amount, Date *date, Transaction::Status = Transaction::SUCCESS);
 };
 
 #endif // ACCOUNT_OLD_HH

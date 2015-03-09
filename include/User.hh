@@ -15,7 +15,7 @@ public:
 
   const std::string &getFirstName() const;
   const std::string &getLastName()  const;
-  const Date *getBirthdate()              const;
+  const Date *getBirthdate()        const;
 };
 
 std::ostream &operator<<(std::ostream &, const User *);

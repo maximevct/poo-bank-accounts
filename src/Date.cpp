@@ -7,6 +7,7 @@ Date::Date(const unsigned int day, const unsigned int month, const unsigned int 
   std::ostringstream ss;
   ss << year << '-' << month << '-' << day;
   _dateAsString = ss.str();
+  if (!isValid()) throw -1;
 }
 
 Date::Date(const std::string &dateAsString)
@@ -22,6 +23,7 @@ Date::Date(const std::string &dateAsString)
   _day   = std::stoi(day);
   _month = std::stoi(month);
   _year  = std::stoi(year);
+  if (!isValid()) throw -1;
 }
 
 Date::Date(const Date &date)
@@ -56,6 +58,14 @@ bool Date::compareDay(Date *date) const {
 bool Date::compareMonth(Date *date) const {
   return _month == date->getMonth()
       && _year  == date->getYear();
+}
+
+bool Date::isValid() {
+  //                        1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12
+  _nbrDaysInMonths.assign({31,28,30,31,30,31,30,31,30,31,30,31});
+  return (_month && _month <= _nbrDaysInMonths.size())
+    && (_day && _day <= _nbrDaysInMonths[_month - 1])
+    && _year < 2016;
 }
 
 std::ostream &operator<<(std::ostream &os, const Date *date) {

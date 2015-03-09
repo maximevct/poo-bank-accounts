@@ -1,62 +1,56 @@
 #include "Account.hh"
 
-Account::Account(User *user, Id *id, double balance, Id *tutor) {
+Account::Account(User *user, Id *id, double balance, Account *tutor) {
   _user              = user;
   _balance           = balance;
   IdGenerator *idGen = IdGenerator::getInstance();
   _tutor             = tutor;
   _id                = (id == NULL) ? idGen->generateId(user) : idGen->useId(id);
+  initMenu();
+  initTransactionStatuses();
+}
+
+void Account::initTransactionStatuses() {
+  _transactionsStatuses[Transaction::SUCCESS]       = "Operation completed succesfully";
+  _transactionsStatuses[Transaction::INSUF_BALANCE] = "Your balance is insufficient";
+  _transactionsStatuses[Transaction::DAY_LIMIT]     = "You have reached the daily withddrawal limit";
+  _transactionsStatuses[Transaction::MONTH_LIMIT]   = "You have reached the monthly withddrawal limit";
+  _transactionsStatuses[Transaction::UNAUTHORIZED]  = "Unfortunately God could not respond favorably to your request";
+}
+
+void Account::initMenu() {
   _menuAccount = new Menu<void, Account>(this, "Account ["+ _id->getId() +"] - Menu ");
   _menuAccount->push_back("Display balance", &Account::showBalance);
   _menuAccount->push_back("Make a withdraw", &Account::showWithdraw);
   _menuAccount->push_back("Make a deposit", &Account::showDeposit);
   _menuAccount->push_back("Display account information", &Account::showAccount);
   _menuAccount->push_back("List all transactions", &Account::showListTransactions);
-  _transactionsStatuses.push_back("Operation completed succesfully");
-  _transactionsStatuses.push_back("Your balance is insufficient");
-  _transactionsStatuses.push_back("You have reached the daily withddrawal limit");
-  _transactionsStatuses.push_back("You have reached the monthly withddrawal limit");
-  _transactionsStatuses.push_back("Unfortunately God could not respond favorably to your request");
+  _menuAccount->push_back("List only succesfull transactions", &Account::showListSuccessTransactions);
 }
 
-const Id                       *Account::getId()           const { return _id; }
-const User                     *Account::getUser()         const { return _user; }
-const Id                       *Account::getTutor()        const { return _tutor; }
+Id                             *Account::getId()           const { return _id; }
+User                           *Account::getUser()         const { return _user; }
+Account                        *Account::getTutor()        const { return _tutor; }
 const std::list<Transaction *> &Account::getTransactions() const { return _listTransactions; }
 double                          Account::getBalance()      const { return _balance; }
 Account::AccountType            Account::getType()         const { return _type; }
+void Account::setTutor(Account *tutor) { _tutor = tutor; }
 
-double Account::getTotalWithdrawThisDay(Date *date) {
-  double sum = 0;
-  for (Transaction *t : _listTransactions) {
-    if (t->getDate()->compareDay(date))
-      sum += t->getAmount();
-  }
-  return sum;
-}
-
-double Account::getTotalWithdrawThisMonth(Date *date) {
-  double sum = 0;
-  for (Transaction *t : _listTransactions) {
-    if (t->getDate()->compareMonth(date))
-      sum += t->getAmount();
-  }
-  return sum;
-}
-
-Account::TransactionStatus Account::withdraw(const double amount, Date *date) {
-  if (_balance > amount) {
-    _listTransactions.push_back(new Transaction(-amount, date));
+Transaction::Status Account::withdraw(const double amount, Date *date, Transaction::Status status) {
+  if (_balance < amount)
+    status = Transaction::INSUF_BALANCE;
+  if (status == Transaction::SUCCESS)
     _balance -= amount;
-    return Account::SUCCESS;
-  }
-  return Account::INSUF_BALANCE;
+  _listTransactions.push_back(new Transaction(-amount, date, status));
+  showBalance();
+  return status;
 }
 
-Account::TransactionStatus Account::deposit(const double amount, Date *date) {
+Transaction::Status Account::deposit(const double amount, Date *date) {
   _listTransactions.push_back(new Transaction(amount, date));
   _balance += amount;
-  return Account::SUCCESS;
+  showBalance();
+  return Transaction::SUCCESS;
 }
 
 void Account::addTransaction(const double amount, Date *date) {
@@ -140,6 +134,18 @@ void Account::showListTransactions() {
   for (auto t : _listTransactions) {
     std::cout << "\t" << t << std::endl;
   }
+}
+
+void Account::showListSuccessTransactions() {
+  std::cout << "Transaction list : " << std::endl;
+  for (auto t : _listTransactions) {
+    if (t->getStatus() == Transaction::SUCCESS)
+      std::cout << "\t" << t << std::endl;
+  }
+}
+
+void Account::showListTutor() {
+  std::cout << "Your tutor is : " << _tutor->getUser() << std::endl;
 }
 
 bool operator==(Account *account, const std::string &id) {

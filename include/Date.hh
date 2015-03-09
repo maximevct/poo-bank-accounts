@@ -5,13 +5,17 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <vector>
 
 class Date {
 private:
-  unsigned int _day;
-  unsigned int _month;
-  unsigned int _year;
-  std::string  _dateAsString;
+  unsigned int      _day;
+  unsigned int      _month;
+  unsigned int      _year;
+  std::string       _dateAsString;
+  std::vector<unsigned int>  _nbrDaysInMonths;
+
+  bool isValid();
 public:
   Date(const unsigned int day, const unsigned int month, const unsigned int year);
   Date(const std::string &dateAsString);

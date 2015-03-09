@@ -1,19 +1,14 @@
 #include "AccountOld.hh"
 
-AccountOld::AccountOld(User *user, Id *id, double balance, Id *tutor) : Account(user, id, balance, tutor) {
+AccountOld::AccountOld(User *user, Id *id, double balance, Account *tutor) : Account(user, id, balance, tutor) {
   _type = OLD;
 }
 
 AccountOld::~AccountOld() {};
 
-AccountOld::TransactionStatus AccountOld::withdraw(const double amount, Date *date) {
+Transaction::Status AccountOld::withdraw(const double amount, Date *date, Transaction::Status status) {
   if (!God::doYouAuthorizeThisMyLord()) {
-    return UNAUTHORIZED;
+    status = Transaction::UNAUTHORIZED;
   }
-  if (_balance > amount) {
-    _balance -= amount;
-    _listTransactions.push_back(new Transaction(amount, date));
-    return SUCCESS;
-  }
-  return INSUF_BALANCE;
+  return Account::withdraw(amount, date, status);
 }

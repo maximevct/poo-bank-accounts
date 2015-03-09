@@ -4,13 +4,19 @@
 #include "Date.hh"
 
 class Transaction {
+public:
+  enum Status { SUCCESS, INSUF_BALANCE, DAY_LIMIT, MONTH_LIMIT, UNAUTHORIZED };
+
 private:
   double _amount;
   Date  *_date;
+  Status _status;
+
 public:
-  Transaction(double amount, Date *date);
+  Transaction(double, Date *, Status = SUCCESS);
   double getAmount() const;
   Date  *getDate()   const;
+  Status getStatus() const;
 };
 
 std::ostream &operator<<(std::ostream &, Transaction *);

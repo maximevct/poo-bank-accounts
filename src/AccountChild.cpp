@@ -1,23 +1,35 @@
 #include "AccountChild.hh"
 
-AccountChild::AccountChild(User *user, Id *id, double balance, Id *tutor)
+AccountChild::AccountChild(User *user, Id *id, double balance, Account *tutor)
   : Account(user, id, balance, tutor) {
   _type = CHILD;
+  _menuAccount->push_back("Display tutor info", &Account::showListTutor);
 }
 
 AccountChild::~AccountChild() {}
 
-AccountChild::TransactionStatus AccountChild::withdraw(const double amount, Date *date) {
-  if (getTotalWithdrawThisDay(date) > 10) {
-    return DAY_LIMIT;
+double AccountChild::getTotalWithdrawThisDay(Date *date) {
+  double sum = 0;
+  for (Transaction *t : _listTransactions) {
+    if (t->getDate()->compareDay(date))
+      sum += t->getAmount();
   }
-  if (getTotalWithdrawThisMonth(date) > 50) {
-    return MONTH_LIMIT;
+  return sum;
+}
+
+double AccountChild::getTotalWithdrawThisMonth(Date *date) {
+  double sum = 0;
+  for (Transaction *t : _listTransactions) {
+    if (t->getDate()->compareMonth(date))
+      sum += t->getAmount();
   }
-  if (_balance > amount) {
-    _balance -= amount;
-    _listTransactions.push_back(new Transaction(amount, date));
-    return SUCCESS;
-  }
-  return INSUF_BALANCE;
+  return sum;
+}
+
+Transaction::Status AccountChild::withdraw(const double amount, Date *date, Transaction::Status status) {
+  if (amount > 10 || getTotalWithdrawThisDay(date) > 10)
+    status = Transaction::DAY_LIMIT;
+  if (getTotalWithdrawThisMonth(date) > 50)
+    status = Transaction::MONTH_LIMIT;
+  return Account::withdraw(amount, date, status);
 }

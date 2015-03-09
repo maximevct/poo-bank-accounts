@@ -2,7 +2,7 @@
 #define ACCOUNT_HH
 
 #include <list>
-#include <vector>
+#include <map>
 
 #include "User.hh"
 #include "Id.hh"
@@ -12,32 +12,33 @@
 
 class Account {
 public:
-  enum AccountType       { NORMAL = 'R', CHILD = 'E', OLD = 'A' };
-  enum TransactionStatus { SUCCESS, INSUF_BALANCE, DAY_LIMIT, MONTH_LIMIT, UNAUTHORIZED };
+  enum AccountType { NORMAL = 'R', CHILD = 'E', OLD = 'A', NONE = '0'};
+private:
+  void initMenu();
+  void initTransactionStatuses();
 protected:
   User                      *_user;
   Id                        *_id;
-  Id                        *_tutor;
+  Account                   *_tutor;
   double                    _balance;
   Account::AccountType      _type;
   std::list<Transaction *>  _listTransactions;
-  std::vector<std::string>    _transactionsStatuses;
+  std::map<Transaction::Status, std::string>    _transactionsStatuses;
   Menu<void, Account>       *_menuAccount;
 
-  double getTotalWithdrawThisDay(Date *date);
-  double getTotalWithdrawThisMonth(Date *date);
 public:
-  Account(User *user, Id *id, double balance, Id *tutor);
+  Account(User *user, Id *id, double balance, Account *tutor);
   virtual ~Account();
-  const Id                       *getId()           const;
-  const User                     *getUser()         const;
-  const Id                       *getTutor()        const;
+  Id                       *getId()                 const;
+  User                     *getUser()               const;
+  Account                  *getTutor()              const;
   const std::list<Transaction *> &getTransactions() const;
   double                          getBalance()      const;
   AccountType                     getType()         const;
+  void setTutor(Account *);
 
-  virtual TransactionStatus withdraw(const double amount, Date *date);
-  virtual TransactionStatus deposit(const double amount, Date *date);
+  virtual Transaction::Status withdraw(const double amount, Date *date, Transaction::Status = Transaction::SUCCESS);
+  virtual Transaction::Status deposit(const double amount, Date *date);
   virtual void addTransaction(const double amount, Date *date);
 
   double askAmount();
@@ -50,6 +51,8 @@ public:
   virtual void showDeposit();
   virtual void showAccount();
   virtual void showListTransactions();
+  virtual void showListTutor();
+  virtual void showListSuccessTransactions();
 };
 
 bool operator==(Account *, const std::string &);

@@ -31,6 +31,6 @@ Id *IdGenerator::useId(Id *id) {
 
 Id *IdGenerator::generateId(User *user, const int i) {
   std::string idAsString;
-  idAsString = user->getFirstName() + user->getLastName() + user->getBirthdate()->getDateString() + std::to_string(i);
+  idAsString = std::to_string(i);
   return (issetId(idAsString)) ? generateId(user, i + 1) : createNewId(idAsString);
 }

@@ -34,13 +34,20 @@ public:
       }
       std::cout << "|" << std::setfill('-') << std::setw(56) << "|" << std::setfill(' ') << std::endl;
       std::cout << "Enter your choice : ";
-      std::cin >> entry;
-      std::cin.ignore(1);
-      if (entry >= _listChoices.size()) {
-        std::cout << "Invalid Choice" << std::endl;
+      std::string entryStr;
+      std::getline(std::cin, entryStr);
+      try {
+        entry = std::stoi(entryStr);
+        if (entry >= _listChoices.size()) {
+          throw -1;
+        }
+        else if (entry) {
+          (_context->*_listFunctions[entry])();
+        }
       }
-      else if (entry) {
-        (_context->*_listFunctions[entry])();
+      catch (...) {
+        std::cout << "Invalid Choice" << std::endl;
+        entry = -1;
       }
     }
   }

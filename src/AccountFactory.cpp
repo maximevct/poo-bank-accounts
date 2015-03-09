@@ -1,14 +1,14 @@
 #include "AccountFactory.hh"
 
-Account *AccountFactory::createAccountNormal(User *user, Id *id, double balance, Id *tutor) {
+Account *AccountFactory::createAccountNormal(User *user, Id *id, double balance, Account *tutor) {
   return new AccountNormal(user, id, balance, tutor);
 }
 
-Account *AccountFactory::createAccountChild(User *user, Id *id, double balance, Id *tutor) {
+Account *AccountFactory::createAccountChild(User *user, Id *id, double balance, Account *tutor) {
   return new AccountChild(user, id, balance, tutor);
 }
 
-Account *AccountFactory::createAccountOld(User *user, Id *id, double balance, Id *tutor) {
+Account *AccountFactory::createAccountOld(User *user, Id *id, double balance, Account *tutor) {
   return new AccountOld(user, id, balance, tutor);
 }
 
@@ -18,7 +18,7 @@ AccountFactory::AccountFactory() {
   _listAccountTypes[Account::OLD]    = &AccountFactory::createAccountOld;
 }
 
-Account *AccountFactory::createAccount(Account::AccountType type, User *user, Id *id, double balance, Id *tutor) {
+Account *AccountFactory::createAccount(Account::AccountType type, User *user, Id *id, double balance, Account *tutor) {
   return (this->*_listAccountTypes[type])(user, id, balance, tutor);
 }
 
