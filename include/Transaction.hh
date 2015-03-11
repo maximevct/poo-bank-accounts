@@ -9,7 +9,7 @@ public:
 
 private:
   double _amount;
-  Date  *_date;
+  Date   *_date;
   Status _status;
 
 public:

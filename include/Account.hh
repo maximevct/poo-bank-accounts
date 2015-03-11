@@ -17,32 +17,32 @@ private:
   void initMenu();
   void initTransactionStatuses();
 protected:
-  User                      *_user;
-  Id                        *_id;
-  Account                   *_tutor;
-  double                    _balance;
-  Account::AccountType      _type;
-  std::list<Transaction *>  _listTransactions;
+  User                                         *_user;
+  Id                                           *_id;
+  Account                                      *_tutor;
+  double                                        _balance;
+  Account::AccountType                          _type;
+  std::list<Transaction *>                      _listTransactions;
   std::map<Transaction::Status, std::string>    _transactionsStatuses;
-  Menu<void, Account>       *_menuAccount;
+  Menu<void, Account>                           *_menuAccount;
 
 public:
-  Account(User *user, Id *id, double balance, Account *tutor);
+  Account(User *, Id *, double, Account *);
   virtual ~Account();
-  Id                       *getId()                 const;
-  User                     *getUser()               const;
-  Account                  *getTutor()              const;
+  Id                             *getId()           const;
+  User                           *getUser()         const;
+  Account                        *getTutor()        const;
   const std::list<Transaction *> &getTransactions() const;
-  double                          getBalance()      const;
-  AccountType                     getType()         const;
-  void setTutor(Account *);
+  double                         getBalance()       const;
+  AccountType                    getType()          const;
+  void                           setTutor(Account *);
 
-  virtual Transaction::Status withdraw(const double amount, Date *date, Transaction::Status = Transaction::SUCCESS);
-  virtual Transaction::Status deposit(const double amount, Date *date);
-  virtual void addTransaction(const double amount, Date *date);
+  virtual Transaction::Status withdraw(const double, Date *, Transaction::Status = Transaction::SUCCESS);
+  virtual Transaction::Status deposit(const double, Date *);
+  virtual void                addTransaction(const double, Date *);
 
   double askAmount();
-  Date *askDate();
+  Date   *askDate();
 
   virtual void menu();
 

@@ -5,13 +5,13 @@
 
 class AccountChild : public Account {
 private:
-  double getTotalWithdrawThisDay(Date *date);
-  double getTotalWithdrawThisMonth(Date *date);
+  double getTotalWithdrawThisDay(Date *);
+  double getTotalWithdrawThisMonth(Date *);
 public:
-  AccountChild(User *user, Id *id, double balance, Account *tutor);
+  AccountChild(User *, Id *, double, Account *);
   virtual ~AccountChild();
 
-  virtual Transaction::Status withdraw(const double amount, Date *date, Transaction::Status = Transaction::SUCCESS);
+  virtual Transaction::Status withdraw(const double, Date *, Transaction::Status = Transaction::SUCCESS);
 };
 
 #endif // ACCOUNT_CHILD_HH

@@ -2,7 +2,10 @@
 
 IdGenerator *IdGenerator::_instance = NULL;
 
-bool  IdGenerator::issetId(const std::string &id) {
+IdGenerator::IdGenerator() {}
+IdGenerator::~IdGenerator() {}
+
+bool IdGenerator::issetId(const std::string &id) {
   std::list<Id *>::iterator it;
   it = find(_listIds.begin(), _listIds.end(), id);
   return it != _listIds.end();
@@ -20,9 +23,6 @@ IdGenerator *IdGenerator::getInstance() {
   }
   return _instance;
 }
-
-IdGenerator::IdGenerator() {}
-IdGenerator::~IdGenerator() {}
 
 Id *IdGenerator::useId(Id *id) {
   _listIds.push_back(id);

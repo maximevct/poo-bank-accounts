@@ -9,19 +9,16 @@
 
 class Date {
 private:
-  unsigned int      _day;
-  unsigned int      _month;
-  unsigned int      _year;
-  std::string       _dateAsString;
-  std::vector<unsigned int>  _nbrDaysInMonths;
+  unsigned int              _day;
+  unsigned int              _month;
+  unsigned int              _year;
+  std::string               _dateAsString;
+  std::vector<unsigned int> _nbrDaysInMonths;
 
   bool isValid();
 public:
-  Date(const unsigned int day, const unsigned int month, const unsigned int year);
-  Date(const std::string &dateAsString);
-  Date(const Date &date);
-  Date &operator=(const Date &date);
-
+  Date(const unsigned int, const unsigned int, const unsigned int);
+  Date(const std::string &);
   ~Date();
 
   const unsigned int &getDay()         const;
@@ -29,10 +26,10 @@ public:
   const unsigned int &getYear()        const;
   const std::string  &getDateString()  const;
 
-  bool compareDay(Date *date) const;
-  bool compareMonth(Date *date) const;
+  bool compareDay(Date *) const;
+  bool compareMonth(Date *) const;
 };
 
-std::ostream &operator<<(std::ostream &os, const Date *date);
+std::ostream &operator<<(std::ostream &, const Date *);
 
 #endif // DATE_HH

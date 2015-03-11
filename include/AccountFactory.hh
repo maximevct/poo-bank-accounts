@@ -14,13 +14,13 @@ class AccountFactory {
 private:
   std::map<Account::AccountType, Account *(AccountFactory::*)(User *, Id *, double, Account *)> _listAccountTypes;
 
-  Account *createAccountNormal(User *user, Id *id, double balance, Account *tutor);
-  Account *createAccountChild(User *user, Id *id, double balance, Account *tutor);
-  Account *createAccountOld(User *user, Id *id, double balance, Account *tutor);
+  Account *createAccountNormal(User *, Id *, double, Account *);
+  Account *createAccountChild(User *, Id *, double, Account *);
+  Account *createAccountOld(User *, Id *, double, Account *);
 public:
   AccountFactory();
   ~AccountFactory();
-  Account *createAccount(Account::AccountType type, User *user, Id *id, double balance = 0, Account *tutor = NULL);
+  Account *createAccount(Account::AccountType, User *, Id *, double = 0, Account * = NULL);
 };
 
 

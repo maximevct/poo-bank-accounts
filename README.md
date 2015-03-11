@@ -54,6 +54,7 @@ Programmation orientée objet
   - Affichage de la liste des utilisateurs
   - Séléction d'un utilisateur
   - Ajout d'un utilisateur
+  - Suppression d'un utilisateur
   - **Compte**
     - Affichage du solde du compte
     - Retrait (Compte enfant (E) limité à 10/jour et 50/mois, Compte ancien (A) requiert autorisation de Dieu)

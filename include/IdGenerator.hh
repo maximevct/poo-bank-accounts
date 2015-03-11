@@ -13,14 +13,14 @@ private:
   std::list<Id *>     _listIds;
 
   IdGenerator();
-  bool  issetId(const std::string &id);
-  Id *createNewId(const std::string &id);
+  bool  issetId(const std::string &);
+  Id *createNewId(const std::string &);
 
 public:
   static IdGenerator *getInstance();
   ~IdGenerator();
-  Id *useId(Id *id);
-  Id *generateId(User *user, const int i = 1);
+  Id *useId(Id *);
+  Id *generateId(User *, const int = 1);
 };
 
 

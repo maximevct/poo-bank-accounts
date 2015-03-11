@@ -9,8 +9,7 @@ private:
   std::string _lastName;
   Date        *_birthdate;
 public:
-  User(const std::string &firstName, const std::string &lastName, Date *date);
-  // User(const User &user);
+  User(const std::string &, const std::string &, Date *);
   ~User();
 
   const std::string &getFirstName() const;

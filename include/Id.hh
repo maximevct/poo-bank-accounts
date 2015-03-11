@@ -7,13 +7,13 @@ class Id {
 private:
   const std::string _id;
 public:
-  Id(const std::string &id);
+  Id(const std::string &);
   ~Id();
 
   const std::string &getId() const;
 };
 
-bool operator==(Id* idObj, const std::string &idStr);
-std::ostream &operator<<(std::ostream &os, const Id *id);
+bool operator==(Id *, const std::string &);
+std::ostream &operator<<(std::ostream &, const Id *);
 
 #endif // ID_HH

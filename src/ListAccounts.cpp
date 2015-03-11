@@ -1,18 +1,37 @@
 #include "ListAccounts.hh"
 
-ListAccounts::ListAccounts(const std::string &filename) : _filename(filename) {
+ListAccounts::ListAccounts(const std::string &filename)
+  : _filename(filename) {
   setElemTypes();
   _menuListAccounts = new Menu<void, ListAccounts>(this, "Main Menu");
   _menuListAccounts->push_back("Display account list", &ListAccounts::displayListAccounts);
   _menuListAccounts->push_back("Select an account"   , &ListAccounts::selectAnAccount);
   _menuListAccounts->push_back("Add an account"      , &ListAccounts::addAnAccount);
+  _menuListAccounts->push_back("Delete an account"   , &ListAccounts::deleteAnAccount);
+}
+
+ListAccounts::ListAccounts() {
+  setElemTypes();
+  _menuListAccounts = new Menu<void, ListAccounts>(this, "Main Menu");
+  _menuListAccounts->push_back("Display account list", &ListAccounts::displayListAccounts);
+  _menuListAccounts->push_back("Select an account"   , &ListAccounts::selectAnAccount);
+  _menuListAccounts->push_back("Add an account"      , &ListAccounts::addAnAccount);
+  _menuListAccounts->push_back("Delete an account"   , &ListAccounts::deleteAnAccount);
 }
 
 ListAccounts::~ListAccounts() {
   delete _menuListAccounts;
 }
 
+void ListAccounts::emptyListMsg() {
+  std::cout << "Account list is empty, try to add a new one" << std::endl;
+}
+
 void ListAccounts::displayListAccounts() {
+  if (_listAccounts.size() == 0) {
+    emptyListMsg();
+    return ;
+  }
   std::cout << "List of all accounts :" << std::endl;
   for (Account *a : _listAccounts) {
     std::cout << a << std::endl;
@@ -28,19 +47,58 @@ Account *ListAccounts::getById(Id *id) {
 }
 
 void ListAccounts::selectAnAccount() {
-  std::string id;
-  std::cout << "Enter the ID account (0 to quit): ";
-  std::getline(std::cin, id);
-  Account *selected = getById(new Id(id));
-  if (!selected)
-    return;
-  if (selected) {
-    std::cout << selected << std::endl;
-    selected->menu();
+  if (_listAccounts.size() == 0) {
+    emptyListMsg();
+    return ;
   }
-  else {
-    std::cout << "Invalid Id, try again" << std::endl;
-    selectAnAccount();
+  std::string id;
+  while (id != "0") {
+    std::cout << "Enter the ID account (0 to quit): ";
+    std::getline(std::cin, id);
+    Account *selected = getById(new Id(id));
+    if (selected) {
+      std::cout << selected << std::endl;
+      selected->menu();
+      return;
+    }
+    else if (id != "0") {
+      std::cout << "This account does not exists, try again" << std::endl;
+    }
+  }
+}
+
+void ListAccounts::deleteById(Id *id) {
+  std::list<Account *>::iterator it = _listAccounts.begin();
+  for (;it != _listAccounts.end() && (*it)->getId()->getId() != id->getId(); ++it);  if (it != _listAccounts.end()) {
+    bool issetParent = false;
+    for (auto a : _listAccounts)
+      if (a->getTutor() != NULL && a->getTutor()->getId() == id->getId()) {
+        issetParent = true;
+        std::cout << "Cannot delete account, linked to [" << a->getId() << "]" << std::endl;
+      }
+    if (!issetParent) {
+      _listAccounts.erase(it);
+      std::cout << "Account succesfully deleted" << std::endl;
+    }
+  }
+}
+
+void ListAccounts::deleteAnAccount() {
+  if (_listAccounts.size() == 0) {
+    emptyListMsg();
+    return ;
+  }
+  std::string id;
+  while (id != "0") {
+    std::cout << "Enter the ID account (0 to quit): ";
+    std::getline(std::cin, id);
+    Account *selected = getById(new Id(id));
+    if (selected) {
+      deleteById(selected->getId());
+      return ;
+    }
+    else if (id != "0")
+      std::cout << "This account does not exists, try again" << std::endl;
   }
 }
 
@@ -58,13 +116,15 @@ Date *ListAccounts::askForDate(const std::string &txt) {
 Account::AccountType ListAccounts::askForType(const std::string &txt) {
   try {
     std::string typestr = askForString(txt);
-    Account::AccountType type = static_cast<Account::AccountType>(typestr[0]);
-    if (type > Account::OLD)
+    if (typestr.length() != 1)
       throw -1;
+    Account::AccountType type = static_cast<Account::AccountType>(typestr[0]);
     if (type == Account::CHILD) {
       std::cout << "You are too old for this account type" << std::endl;
       return askForType(txt);
     }
+    if (type != Account::NONE && type != Account::NORMAL && type != Account::OLD)
+      throw -1;
     return type;
   }
   catch (...) {

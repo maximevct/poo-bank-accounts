@@ -1,11 +1,17 @@
 #include "main.hh"
 
 int     main(int ac, char *av[]) {
+  ListAccounts *listAccounts;
   if (ac == 2) {
-    ListAccounts    listAccounts(av[1]);
-    listAccounts.load();
-    listAccounts.menu();
-    listAccounts.save();
+    listAccounts = new ListAccounts(av[1]);
+    listAccounts->load();
   }
+  else {
+    listAccounts = new ListAccounts();
+  }
+  listAccounts->menu();
+  if (ac == 2)
+    listAccounts->save();
+  delete listAccounts;
   return 0;
 }

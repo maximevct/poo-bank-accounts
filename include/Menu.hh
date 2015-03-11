@@ -7,16 +7,18 @@
 
 template<typename T, typename U>
 class Menu {
-  std::vector<std::string>  _listChoices;
-  std::vector<T (U::*)()>            _listFunctions;
-  U *_context;
-  std::string _title;
+  std::vector<std::string> _listChoices;
+  std::vector<T (U::*)()>  _listFunctions;
+  U                        *_context;
+  std::string              _title;
 public:
-  Menu(U *context, const std::string &title) : _title(title) {
+  Menu(U *context, const std::string &title)
+    : _title(title) {
     _context = context;
     _listChoices.push_back("Quit");
     _listFunctions.push_back(NULL);
   }
+
   ~Menu() {}
 
   void push_back(const std::string &choice, T (U::*func)()) {

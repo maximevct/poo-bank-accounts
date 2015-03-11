@@ -26,28 +26,23 @@ Date::Date(const std::string &dateAsString)
   if (!isValid()) throw -1;
 }
 
-Date::Date(const Date &date)
-  : _day(date.getDay()),
-    _month(date.getMonth()),
-    _year(date.getYear()),
-    _dateAsString(date.getDateString()) {}
-
-Date &Date::operator=(const Date &date) {
-  if (this != &date) {
-    _day = date.getDay();
-    _month = date.getMonth();
-    _year = date.getYear();
-    _dateAsString = date.getDateString();
-  }
-  return *this;
-}
-
 Date::~Date() {}
 
-const unsigned int &Date::getDay()         const { return _day;          }
-const unsigned int &Date::getMonth()       const { return _month;        }
-const unsigned int &Date::getYear()        const { return _year;         }
-const std::string  &Date::getDateString()  const { return _dateAsString; }
+const unsigned int &Date::getDay() const {
+ return _day;
+}
+
+const unsigned int &Date::getMonth() const {
+ return _month;
+}
+
+const unsigned int &Date::getYear() const {
+ return _year;
+}
+
+const std::string  &Date::getDateString() const {
+ return _dateAsString;
+}
 
 bool Date::compareDay(Date *date) const {
   return _day   == date->getDay()

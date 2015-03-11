@@ -9,6 +9,9 @@ Account::Account(User *user, Id *id, double balance, Account *tutor) {
   initMenu();
   initTransactionStatuses();
 }
+Account::~Account() {
+  delete _menuAccount;
+}
 
 void Account::initTransactionStatuses() {
   _transactionsStatuses[Transaction::SUCCESS]       = "Operation completed succesfully";
@@ -20,21 +23,41 @@ void Account::initTransactionStatuses() {
 
 void Account::initMenu() {
   _menuAccount = new Menu<void, Account>(this, "Account ["+ _id->getId() +"] - Menu ");
-  _menuAccount->push_back("Display balance", &Account::showBalance);
-  _menuAccount->push_back("Make a withdraw", &Account::showWithdraw);
-  _menuAccount->push_back("Make a deposit", &Account::showDeposit);
-  _menuAccount->push_back("Display account information", &Account::showAccount);
-  _menuAccount->push_back("List all transactions", &Account::showListTransactions);
+  _menuAccount->push_back("Display balance"                  , &Account::showBalance);
+  _menuAccount->push_back("Make a withdraw"                  , &Account::showWithdraw);
+  _menuAccount->push_back("Make a deposit"                   , &Account::showDeposit);
+  _menuAccount->push_back("Display account information"      , &Account::showAccount);
+  _menuAccount->push_back("List all transactions"            , &Account::showListTransactions);
   _menuAccount->push_back("List only succesfull transactions", &Account::showListSuccessTransactions);
 }
 
-Id                             *Account::getId()           const { return _id; }
-User                           *Account::getUser()         const { return _user; }
-Account                        *Account::getTutor()        const { return _tutor; }
-const std::list<Transaction *> &Account::getTransactions() const { return _listTransactions; }
-double                          Account::getBalance()      const { return _balance; }
-Account::AccountType            Account::getType()         const { return _type; }
-void Account::setTutor(Account *tutor) { _tutor = tutor; }
+Id *Account::getId() const {
+  return _id;
+}
+
+User *Account::getUser() const {
+  return _user;
+}
+
+Account *Account::getTutor() const {
+  return _tutor;
+}
+
+const std::list<Transaction *> &Account::getTransactions() const {
+  return _listTransactions;
+}
+
+double Account::getBalance() const {
+  return _balance;
+}
+
+Account::AccountType Account::getType() const {
+  return _type;
+}
+
+void Account::setTutor(Account *tutor) {
+  _tutor = tutor;
+}
 
 Transaction::Status Account::withdraw(const double amount, Date *date, Transaction::Status status) {
   if (_balance < amount)
@@ -56,8 +79,6 @@ Transaction::Status Account::deposit(const double amount, Date *date) {
 void Account::addTransaction(const double amount, Date *date) {
   _listTransactions.push_back(new Transaction(amount, date));
 }
-
-Account::~Account() {}
 
 void Account::menu() {
   _menuAccount->show();

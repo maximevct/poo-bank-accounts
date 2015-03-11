@@ -5,7 +5,7 @@
 
 class AccountNormal : public Account {
 public:
-  AccountNormal(User *user, Id *id, double balance, Account *tutor);
+  AccountNormal(User *, Id *, double, Account *);
   virtual ~AccountNormal();
 };
 
