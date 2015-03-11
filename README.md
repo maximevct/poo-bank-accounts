@@ -1,7 +1,7 @@
 Programmation orientée objet
 ============================
 
-## TP 2
+## TP 2 - Partie 1
 
 ### Environnement de développement
   - Système : Ubuntu 14.04 LTS (64 bits)
@@ -68,6 +68,35 @@ Programmation orientée objet
 ```csv
 ID_ACCOUNT,ACCOUNT_TYPE,LASTNAME,FIRSTNAME,BIRTHDATE,[TUTOR_ID_ACCOUNT],BALANCE,[AMOUNT_TRANSACTION,DATE_TRANSACTION]
 ```
+
+## TP 2 - Partie 2
+
+Le projet aurait pu être codé en utilisant une classe paramétrée qui aurait pris la forme suivante :
+```C++
+class ListAccounts {
+private:
+  std::list<Account *> _listAccount;
+
+public:
+  ListAccounts() {}
+  ~ListAccounts() {}
+
+  template<typename T>
+  void createAccount<T>(const std::string &firstName, const std::string &lastName) {
+    _listAccount.push_back(new T(firstName, lastName));
+  }
+};
+
+int main() {
+  ListAccounts lAccount;
+
+  lAccount.createAccount<AccountChild>("Ella", "Nut");
+}
+```
+
+Cette solution peut paraitre plus simple à coder et à utiliser mais il nous oblige a connaitre le type de compte. Il faut donc écrire autant de fois d'appel à la fonction `createAccount` qu'il existe de comptes différents. La solution la plus adéquate pour ce projet est, il me semble, l'utilisation du pattern `Factory` couplé à un vector contenant des pointeurs sur les méthodes de création de chacun des types. Ainsi, la gestion des constructeurs se fait uniquement grâce à un tableau que l'on rempli ou non.
+
+Une classe paramétrée a été utilisée dans le projet afin de créer dynamiquement les menu. Elle est écrite dans le fichier `menu.hh` et est utilisée dans les classes `ListAccounts` et `Accounts`
 
 ### Auteur
 Maxime VINCENT
