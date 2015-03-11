@@ -82,7 +82,7 @@ public:
   ~ListAccounts() {}
 
   template<typename T>
-  void createAccount<T>(const std::string &firstName, const std::string &lastName) {
+  void createAccount(const std::string &firstName, const std::string &lastName) {
     _listAccount.push_back(new T(firstName, lastName));
   }
 };
@@ -93,6 +93,8 @@ int main() {
   lAccount.createAccount<AccountChild>("Ella", "Nut");
 }
 ```
+
+Vous pouvez trouver un exemple fonctionnel dans le fichier `answer2.cpp` à compiler avec : `g++ answer2.cpp -std=c++11`
 
 Cette solution peut paraitre plus simple à coder et à utiliser mais il nous oblige a connaitre le type de compte. Il faut donc écrire autant de fois d'appel à la fonction `createAccount` qu'il existe de comptes différents. La solution la plus adéquate pour ce projet est, il me semble, l'utilisation du pattern `Factory` couplé à un vector contenant des pointeurs sur les méthodes de création de chacun des types. Ainsi, la gestion des constructeurs se fait uniquement grâce à un tableau que l'on rempli ou non.
 
